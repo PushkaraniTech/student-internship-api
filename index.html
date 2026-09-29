@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Internship Finder</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            color: #222;
+        }
+
+        header {
+            background: #4f46e5;
+            color: white;
+            padding: 30px 8%;
+        }
+
+        header h1 {
+            font-size: 32px;
+        }
+
+        header p {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .search-section {
+            background: white;
+            width: 84%;
+            margin: 30px auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-section h2 {
+            margin-bottom: 18px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 13px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 13px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4f46e5;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #3730a3;
+        }
+
+        .view-all {
+            margin-top: 12px;
+            background: #111827;
+        }
+
+        .container {
+            width: 84%;
+            margin: auto;
+            padding-bottom: 40px;
+        }
+
+        .heading-area {
+            margin-bottom: 20px;
+        }
+
+        .heading-area h2 {
+            margin-bottom: 6px;
+        }
+
+        #count {
+            color: #666;
+        }
+
+        #internshipList {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h3 {
+            color: #4f46e5;
+            margin-bottom: 12px;
+            font-size: 22px;
+        }
+
+        .card p {
+            margin: 9px 0;
+        }
+
+        .skill {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 6px 12px;
+            border-radius: 15px;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .apply-btn {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .empty {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 600px) {
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-section,
+            .container {
+                width: 92%;
+            }
+
+            header {
+                padding: 25px 5%;
+            }
+
+            header h1 {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <h1>🎓 Student Internship Finder</h1>
+
+        <p>
+            Discover internship opportunities from leading IT companies
+            based on your skills and interests.
+        </p>
+
+    </header>
+
+
+    <section class="search-section">
+
+        <h2>🔎 Find Your Internship</h2>
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="skillInput"
+                placeholder="Search by skill or location..."
+            >
+
+            <button onclick="searchInternships()">
+                Search
+            </button>
+
+        </div>
+
+        <button class="view-all" onclick="loadInternships()">
+            View All Internships
+        </button>
+
+    </section>
+
+
+    <div class="container">
+
+        <div class="heading-area">
+
+            <h2>Available Internships</h2>
+
+            <p id="count">
+                Loading internships...
+            </p>
+
+        </div>
+
+
+        <div id="internshipList">
+
+            <p class="empty">
+                Loading internships...
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // Load all internships
+        async function loadInternships() {
+
+            try {
+
+                const response = await fetch("/internships");
+
+                if (!response.ok) {
+                    throw new Error("Failed to load internships");
+                }
+
+                const internships = await response.json();
+
+                displayInternships(internships);
+
+            } catch (error) {
+
+                showError();
+
+                console.error(error);
+
+            }
+        }
+
+
+        // Search internships
+        async function searchInternships() {
+
+            const searchValue =
+                document.getElementById("skillInput").value.trim();
+
+
+            if (searchValue === "") {
+
+                loadInternships();
+
+                return;
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    "/internships/search?skill=" +
+                    encodeURIComponent(searchValue)
+                );
+
+
+                if (!response.ok) {
+                    throw new Error("Search failed");
+                }
+
+
+                const internships = await response.json();
+
+                displayInternships(internships);
+
+            } catch (error) {
+
+                showError();
+
+                console.error(error);
+
+            }
+        }
+
+
+        // Display internship cards
+        function displayInternships(internships) {
+
+            const list =
+                document.getElementById("internshipList");
+
+            const count =
+                document.getElementById("count");
+
+
+            list.innerHTML = "";
+
+
+            count.innerText =
+                internships.length +
+                " internship opportunities found";
+
+
+            if (internships.length === 0) {
+
+                list.innerHTML =
+                    "<p class='empty'>No internships found.</p>";
+
+                return;
+            }
+
+
+            internships.forEach(function(internship) {
+
+                const card =
+                    document.createElement("div");
+
+
+                card.className = "card";
+
+
+                card.innerHTML = `
+
+                    <h3>
+                        ${internship.company}
+                    </h3>
+
+                    <p>
+                        <strong>Role:</strong>
+                        ${internship.role}
+                    </p>
+
+                    <p>
+                        <strong>Location:</strong>
+                        📍 ${internship.location}
+                    </p>
+
+                    <span class="skill">
+                        ${internship.skill}
+                    </span>
+
+                    <button
+                        class="apply-btn"
+                        onclick="applyMessage('${internship.company}')"
+                    >
+                        Apply Now
+                    </button>
+
+                `;
+
+
+                list.appendChild(card);
+
+            });
+
+        }
+
+
+        // Demo Apply button
+        function applyMessage(company) {
+
+            alert(
+                "Application feature for " +
+                company +
+                " will be available soon!"
+            );
+
+        }
+
+
+        // Error message
+        function showError() {
+
+            const list =
+                document.getElementById("internshipList");
+
+            const count =
+                document.getElementById("count");
+
+
+            count.innerText = "";
+
+            list.innerHTML = `
+                <p class="error">
+                    Unable to load internships.
+                    Please make sure the Flask server is running.
+                </p>
+            `;
+
+        }
+
+
+        // Load internships when page opens
+        loadInternships();
+
+    </script>
+
+</body>
+
+</html>
